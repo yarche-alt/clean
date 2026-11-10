@@ -1,0 +1,23 @@
+name: CleanShots
+options:
+  bundleIdPrefix: com.cleanshots
+  createIntermediateGroups: true
+targets:
+  CleanShots:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: CleanShots
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cleanshots.app
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Чистка
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "Чистке нужен доступ к вашим скриншотам, чтобы найти карточки товаров с маркетплейсов и удалить их по вашей команде."
+        INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: "Нужно для восстановления удалённых файлов из приложения."
