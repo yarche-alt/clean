@@ -16,6 +16,10 @@ jobs:
           brew install xcodegen
           xcodegen generate
 
+      - name: Очищаем кэш Xcode (исправление ошибки Assets)
+        run: |
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+
       - name: Собираем приложение (без подписи — подпишет Sideloadly при установке)
         run: |
           xcodebuild \
@@ -24,6 +28,7 @@ jobs:
             -configuration Release \
             -sdk iphoneos \
             -derivedDataPath build \
+            ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon \
             CODE_SIGNING_ALLOWED=NO \
             build
 
