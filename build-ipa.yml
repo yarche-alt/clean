@@ -1,0 +1,41 @@
+name: Сборка CleanShots.ipa
+
+# Запускается вручную: вкладка Actions → «Сборка CleanShots.ipa» → Run workflow
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Клонируем репозиторий
+        uses: actions/checkout@v4
+
+      - name: Генерируем Xcode-проект
+        run: |
+          brew install xcodegen
+          xcodegen generate
+
+      - name: Собираем приложение (без подписи — подпишет Sideloadly при установке)
+        run: |
+          xcodebuild \
+            -project CleanShots.xcodeproj \
+            -scheme CleanShots \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Упаковываем .ipa
+        run: |
+          mkdir -p Payload
+          cp -r "build/Build/Products/Release-iphoneos/CleanShots.app" Payload/
+          zip -r CleanShots.ipa Payload
+
+      - name: Загружаем артефакт
+        uses: actions/upload-artifact@v4
+        with:
+          name: CleanShots-ipa
+          path: CleanShots.ipa
+          retention-days: 30
