@@ -123,8 +123,6 @@ struct RootView: View {
         .ignoresSafeArea()
     }
 
-    // MARK: - Сценарий
-
     private func startFlow() {
         Task {
             let granted = await library.requestAccess()
@@ -197,8 +195,6 @@ struct RootView: View {
     }
 }
 
-// MARK: - Приветствие
-
 private struct WelcomeView: View {
     let hasCleaned: Bool
     let onScan: () -> Void
@@ -231,15 +227,9 @@ private struct WelcomeView: View {
                 .padding(.top, 10)
 
             VStack(spacing: 10) {
-                featureRow(icon: "viewfinder", tint: brandBlue,
-                           title: "Находит мусор сама",
-                           sub: "OCR-анализ каждого скриншота на устройстве")
-                featureRow(icon: "checkmark.shield.fill", tint: iosGreen,
-                           title: "Важное не трогает",
-                           sub: "Переписки, чеки, билеты и заметки в безопасности")
-                featureRow(icon: "bolt.fill", tint: brandAmber,
-                           title: "Удаление в один тап",
-                           sub: "Файлы попадают в «Недавно удалённые» на 30 дней")
+                featureRow(icon: "viewfinder", tint: brandBlue, title: "Находит мусор сама", sub: "OCR-анализ каждого скриншота на устройстве")
+                featureRow(icon: "checkmark.shield.fill", tint: iosGreen, title: "Важное не трогает", sub: "Переписки, чеки, билеты и заметки в безопасности")
+                featureRow(icon: "bolt.fill", tint: brandAmber, title: "Удаление в один тап", sub: "Файлы попадают в «Недавно удалённые» на 30 дней")
             }
             .padding(.top, 32)
             .padding(.horizontal, 24)
@@ -258,10 +248,7 @@ private struct WelcomeView: View {
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .background(
-                        LinearGradient(colors: [brandBlue, Color(0x7A4DFF), brandPink],
-                                       startPoint: .leading, endPoint: .trailing)
-                    )
+                    .background(LinearGradient(colors: [brandBlue, Color(0x7A4DFF), brandPink], startPoint: .leading, endPoint: .trailing))
                     .clipShape(Capsule())
                     .foregroundStyle(.white)
                     .shadow(color: Color(0x7A4DFF).opacity(0.45), radius: 24, y: 10)
@@ -288,14 +275,9 @@ private struct WelcomeView: View {
         .padding(10)
         .background(.white.opacity(0.05))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(.white.opacity(0.08), lineWidth: 1)
-        )
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(.white.opacity(0.08), lineWidth: 1))
     }
 }
-
-// MARK: - Сканирование
 
 private struct ScanningView: View {
     let progress: Int
@@ -317,17 +299,13 @@ private struct ScanningView: View {
 
             Text("\(total == 0 ? 0 : Int(Double(progress) / Double(max(total, 1)) * 100))")
                 .font(.system(size: 58, weight: .black, design: .rounded))
-                .monospacedDigit()
-            + Text(" %")
-                .font(.title3.weight(.bold))
-                .foregroundStyle(.white.opacity(0.4))
+                .monospacedDigit() + Text(" %").font(.title3.weight(.bold)).foregroundStyle(.white.opacity(0.4))
 
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule().fill(.white.opacity(0.08))
                     Capsule()
-                        .fill(LinearGradient(colors: [brandBlue, Color(0x7A4DFF), brandPink],
-                                             startPoint: .leading, endPoint: .trailing))
+                        .fill(LinearGradient(colors: [brandBlue, Color(0x7A4DFF), brandPink], startPoint: .leading, endPoint: .trailing))
                         .frame(width: geo.size.width * (total == 0 ? 0 : Double(progress) / Double(max(total, 1))))
                         .animation(.spring(response: 0.4), value: progress)
                 }
@@ -360,9 +338,7 @@ private struct TileView: View {
         ZStack(alignment: .topTrailing) {
             Group {
                 if let image = item.thumbnail {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
+                    Image(uiImage: image).resizable().scaledToFill()
                 } else {
                     Rectangle().fill(.white.opacity(0.07))
                 }
@@ -370,10 +346,7 @@ private struct TileView: View {
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 130, maxHeight: 130)
             .clipped()
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(borderColor, lineWidth: item.thumbnail == nil ? 0 : 2)
-            )
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(borderColor, lineWidth: item.thumbnail == nil ? 0 : 2))
             .opacity(item.thumbnail == nil ? 0.5 : 1)
 
             if item.thumbnail != nil {
@@ -384,7 +357,6 @@ private struct TileView: View {
                     .background(item.verdict == .junk ? iosRed : iosGreen)
                     .clipShape(Circle())
                     .offset(x: 4, y: -4)
-                    .transition(.scale)
             }
         }
         .animation(.spring(response: 0.35), value: item.thumbnail != nil)
@@ -394,8 +366,6 @@ private struct TileView: View {
         item.verdict == .junk ? iosRed.opacity(0.7) : iosGreen.opacity(0.6)
     }
 }
-
-// MARK: - Результаты
 
 private struct ResultsView: View {
     let junk: [ScreenshotItem]
@@ -414,108 +384,122 @@ private struct ResultsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Результат анализа")
-                    .font(.title2.weight(.black))
-                Text("Проверено скриншотов: \(junk.count + keep.count)")
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.45))
-
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("МОЖНО ОСВОБОДИТЬ")
-                        .font(.caption2.weight(.bold))
-                        .tracking(2)
-                        .foregroundStyle(.white.opacity(0.45))
-                    Text(selectedBytes.humanSize)
-                        .font(.system(size: 44, weight: .black, design: .rounded))
-                        .monospacedDigit()
-                    HStack(spacing: 6) {
-                        statPill(text: "Мусор: \(junk.count)", color: iosRed)
-                        statPill(text: "Важное: \(keep.count)", color: iosGreen)
-                    }
-                }
-                .padding(18)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.white.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(.white.opacity(0.1), lineWidth: 1)
-                )
-                .padding(.top, 14)
-
-                sectionHeader(
-                    title: "На удаление",
-                    sub: "Нажмите на карточку, чтобы оставить её",
-                    badge: "\(selectedIDs.count) из \(junk.count)",
-                    tint: iosRed
-                )
-
-                LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(junk) { item in
-                        JunkCell(item: item, isSelected: selectedIDs.contains(item.id)) {
-                            onToggle(item.id)
-                        }
-                    }
-                }
-                .padding(.top, 8)
-
-                sectionHeader(
-                    title: "Оставим — это важное",
-                    sub: "Переписки, документы и заметки",
-                    badge: "\(keep.count) шт",
-                    tint: iosGreen
-                )
-
-                LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(keep) { item in
-                        KeepCell(item: item)
-                    }
-                }
-                .padding(.top, 8)
-                .padding(.bottom, 120)
+                headerSection
+                summaryCard
+                junkSection
+                keepSection
             }
             .padding(.horizontal, 20)
             .padding(.top, 14)
         }
         .overlay(alignment: .bottom) {
-            HStack(spacing: 10) {
-                Button(action: onReview) {
-                    Label("Проверить", systemImage: "square.stack.3d.up.fill")
-                        .font(.subheadline.weight(.bold))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 52)
-                        .background(.white.opacity(0.08))
-                        .clipShape(Capsule())
-                        .overlay(Capsule().stroke(.white.opacity(0.12)))
-                }
-                .foregroundStyle(.white)
+            bottomActionBar
+        }
+    }
 
-                Button(action: onDelete) {
-                    Label(
-                        selectedIDs.isEmpty ? "Ничего не выбрано" : "Удалить \(selectedIDs.count) · \(selectedBytes.humanSize)",
-                        systemImage: "trash.fill"
-                    )
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Результат анализа")
+                .font(.title2.weight(.black))
+            Text("Проверено скриншотов: \(junk.count + keep.count)")
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.45))
+        }
+    }
+
+    private var summaryCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("МОЖНО ОСВОБОДИТЬ")
+                .font(.caption2.weight(.bold))
+                .tracking(2)
+                .foregroundStyle(.white.opacity(0.45))
+            Text(selectedBytes.humanSize)
+                .font(.system(size: 44, weight: .black, design: .rounded))
+                .monospacedDigit()
+            HStack(spacing: 6) {
+                statPill(text: "Мусор: \(junk.count)", color: iosRed)
+                statPill(text: "Важное: \(keep.count)", color: iosGreen)
+            }
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(.white.opacity(0.1), lineWidth: 1))
+        .padding(.top, 14)
+    }
+
+    private var junkSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            sectionHeader(title: "На удаление", sub: "Нажмите на карточку, чтобы оставить её", badge: "\(selectedIDs.count) из \(junk.count)", tint: iosRed)
+            
+            LazyVGrid(columns: columns, spacing: 12) {
+                ForEach(junk) { item in
+                    JunkCell(item: item, isSelected: selectedIDs.contains(item.id)) {
+                        onToggle(item.id)
+                    }
+                }
+            }
+            .padding(.top, 8)
+        }
+    }
+
+    private var keepSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            sectionHeader(title: "Оставим — это важное", sub: "Переписки, документы и заметки", badge: "\(keep.count) шт", tint: iosGreen)
+            
+            LazyVGrid(columns: columns, spacing: 12) {
+                ForEach(keep) { item in
+                    KeepCell(item: item)
+                }
+            }
+            .padding(.top, 8)
+            .padding(.bottom, 120)
+        }
+    }
+
+    private var bottomActionBar: some View {
+        HStack(spacing: 10) {
+            Button(action: onReview) {
+                Label("Проверить", systemImage: "square.stack.3d.up.fill")
                     .font(.subheadline.weight(.bold))
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
-                    .background(
-                        selectedIDs.isEmpty
-                            ? AnyShapeStyle(.white.opacity(0.08))
-                            : AnyShapeStyle(LinearGradient(colors: [iosRed, Color(0xFF6B3D)], startPoint: .leading, endPoint: .trailing))
-                    )
+                    .background(.white.opacity(0.08))
                     .clipShape(Capsule())
-                    .shadow(color: selectedIDs.isEmpty ? .clear : iosRed.opacity(0.4), radius: 18, y: 8)
-                }
-                .foregroundStyle(selectedIDs.isEmpty ? .white.opacity(0.35) : .white)
-                .disabled(selectedIDs.isEmpty)
+                    .overlay(Capsule().stroke(.white.opacity(0.12)))
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 22)
-            .padding(.top, 30)
-            .background(
-                LinearGradient(colors: [Color(0x050508).opacity(0), Color(0x050508)], startPoint: .top, endPoint: .bottom)
-                    .allowsHitTesting(false)
-            )
+            .foregroundStyle(.white)
+
+            Button(action: onDelete) {
+                Label(
+                    selectedIDs.isEmpty ? "Ничего не выбрано" : "Удалить \(selectedIDs.count) · \(selectedBytes.humanSize)",
+                    systemImage: "trash.fill"
+                )
+                .font(.subheadline.weight(.bold))
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .background(deleteButtonBackground)
+                .clipShape(Capsule())
+                .shadow(color: selectedIDs.isEmpty ? .clear : iosRed.opacity(0.4), radius: 18, y: 8)
+            }
+            .foregroundStyle(selectedIDs.isEmpty ? .white.opacity(0.35) : .white)
+            .disabled(selectedIDs.isEmpty)
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 22)
+        .padding(.top, 30)
+        .background(
+            LinearGradient(colors: [Color(0x050508).opacity(0), Color(0x050508)], startPoint: .top, endPoint: .bottom)
+                .allowsHitTesting(false)
+        )
+    }
+
+    private var deleteButtonBackground: AnyShapeStyle {
+        if selectedIDs.isEmpty {
+            return AnyShapeStyle(.white.opacity(0.08))
+        } else {
+            return AnyShapeStyle(LinearGradient(colors: [iosRed, Color(0xFF6B3D)], startPoint: .leading, endPoint: .trailing))
         }
     }
 
@@ -559,10 +543,7 @@ private struct JunkCell: View {
             VStack(spacing: 6) {
                 ZStack(alignment: .topTrailing) {
                     thumb
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(isSelected ? iosRed : Color.white.opacity(0.1), lineWidth: isSelected ? 2.5 : 1)
-                        )
+                        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(isSelected ? iosRed : Color.white.opacity(0.1), lineWidth: isSelected ? 2.5 : 1))
                         .opacity(isSelected ? 1 : 0.5)
                         .saturation(isSelected ? 1 : 0.3)
 
@@ -615,10 +596,7 @@ private struct KeepCell: View {
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 165, maxHeight: 165)
             .clipped()
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(iosGreen.opacity(0.25), lineWidth: 1)
-            )
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(iosGreen.opacity(0.25), lineWidth: 1))
 
             Image(systemName: "lock.fill")
                 .font(.system(size: 9, weight: .black))
@@ -630,8 +608,6 @@ private struct KeepCell: View {
         }
     }
 }
-
-// MARK: - Ручная проверка (свайпы) - ИСПРАВЛЕННЫЙ БЛОК
 
 private struct ReviewView: View {
     let junk: [ScreenshotItem]
@@ -646,34 +622,21 @@ private struct ReviewView: View {
 
     private var current: ScreenshotItem? { index < junk.count ? junk[index] : nil }
 
+    private var swipeRightOpacity: Double { Double(min(1, -offset / 90)) }
+    private var swipeLeftOpacity: Double { Double(min(1, offset / 90)) }
+
     var body: some View {
         VStack(spacing: 0) {
-            headerView
-            
-            Text("влево — удалить · вправо — оставить")
-                .font(.caption)
-                .foregroundStyle(.white.opacity(0.4))
-                .padding(.top, 8)
-
+            topBar
+            hintText
             Spacer()
-
-            if let item = current {
-                cardStack(for: item)
-            } else {
-                emptyStateView
-            }
-
+            mainContent
             Spacer()
-
-            if current != nil {
-                actionButtons
-            }
+            bottomButtons
         }
     }
-    
-    // MARK: - Subviews для разгрузки компилятора SwiftUI
-    
-    private var headerView: some View {
+
+    private var topBar: some View {
         HStack {
             Button(action: onFinish) {
                 Image(systemName: "chevron.left")
@@ -683,6 +646,7 @@ private struct ReviewView: View {
                     .clipShape(Circle())
             }
             .foregroundStyle(.white)
+            
             VStack(alignment: .leading, spacing: 2) {
                 Text("Ручная проверка").font(.headline.weight(.black))
                 Text(current == nil ? "Все карточки просмотрены" : "Карточка \(index + 1) из \(junk.count)")
@@ -701,47 +665,58 @@ private struct ReviewView: View {
         .padding(.horizontal, 20)
         .padding(.top, 12)
     }
-    
-    private func cardStack(for item: ScreenshotItem) -> some View {
-        ZStack {
-            if index + 1 < junk.count {
-                card(item: junk[index + 1])
-                    .scaleEffect(0.93)
-                    .opacity(0.5)
-                    .offset(y: 12)
+
+    private var hintText: some View {
+        Text("влево — удалить · вправо — оставить")
+            .font(.caption)
+            .foregroundStyle(.white.opacity(0.4))
+            .padding(.top, 8)
+    }
+
+    @ViewBuilder
+    private var mainContent: some View {
+        if let item = current {
+            ZStack {
+                if index + 1 < junk.count {
+                    card(item: junk[index + 1])
+                        .scaleEffect(0.93)
+                        .opacity(0.5)
+                        .offset(y: 12)
+                }
+                interactiveCard(item: item)
             }
-            
-            swipeableCard(for: item)
+        } else {
+            emptyState
         }
     }
-    
-    private func swipeableCard(for item: ScreenshotItem) -> some View {
+
+    private func interactiveCard(item: ScreenshotItem) -> some View {
         card(item: item)
             .offset(x: offset)
             .rotationEffect(.degrees(Double(offset) / 18))
-            .overlay(swipeStampsOverlay)
+            .overlay(swipeStamps)
             .gesture(dragGesture)
             .transition(.opacity)
     }
-    
-    private var swipeStampsOverlay: some View {
+
+    private var swipeStamps: some View {
         ZStack {
             stamp(text: "УДАЛЮ", color: iosRed)
-                .opacity(Double(min(1, -offset / 90)))
+                .opacity(swipeRightOpacity)
                 .rotationEffect(.degrees(-12))
                 .offset(y: -170)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 16)
             
             stamp(text: "ОСТАВЛЮ", color: iosGreen)
-                .opacity(Double(min(1, offset / 90)))
+                .opacity(swipeLeftOpacity)
                 .rotationEffect(.degrees(12))
                 .offset(y: -170)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.trailing, 16)
         }
     }
-    
+
     private var dragGesture: some Gesture {
         DragGesture()
             .onChanged { offset = $0.translation.width }
@@ -757,8 +732,8 @@ private struct ReviewView: View {
                 }
             }
     }
-    
-    private var emptyStateView: some View {
+
+    private var emptyState: some View {
         VStack(spacing: 14) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 52))
@@ -775,44 +750,47 @@ private struct ReviewView: View {
                 .padding(.horizontal, 40)
         }
     }
-    
-    private var actionButtons: some View {
-        HStack(spacing: 26) {
-            Button { dismiss(to: -1) } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 24, weight: .bold))
-                    .frame(width: 64, height: 64)
-                    .background(iosRed.opacity(0.15))
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(iosRed.opacity(0.4)))
-                    .foregroundStyle(iosRed)
+
+    @ViewBuilder
+    private var bottomButtons: some View {
+        if current != nil {
+            HStack(spacing: 26) {
+                Button { dismiss(to: -1) } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 24, weight: .bold))
+                        .frame(width: 64, height: 64)
+                        .background(iosRed.opacity(0.15))
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(iosRed.opacity(0.4)))
+                        .foregroundStyle(iosRed)
+                }
+                Button(action: {
+                    guard index > 0, canUndo else { return }
+                    index -= 1
+                    offset = 0
+                    onUndo()
+                }) {
+                    Image(systemName: "arrow.uturn.backward")
+                        .font(.system(size: 17, weight: .bold))
+                        .frame(width: 48, height: 48)
+                        .background(.white.opacity(0.08))
+                        .clipShape(Circle())
+                        .foregroundStyle(canUndo && index > 0 ? .white : .white.opacity(0.3))
+                }
+                .disabled(!(canUndo && index > 0))
+                
+                Button { dismiss(to: 1) } label: {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 24, weight: .bold))
+                        .frame(width: 64, height: 64)
+                        .background(iosGreen.opacity(0.15))
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(iosGreen.opacity(0.4)))
+                        .foregroundStyle(iosGreen)
+                }
             }
-            Button(action: {
-                guard index > 0, canUndo else { return }
-                index -= 1
-                offset = 0
-                onUndo()
-            }) {
-                Image(systemName: "arrow.uturn.backward")
-                    .font(.system(size: 17, weight: .bold))
-                    .frame(width: 48, height: 48)
-                    .background(.white.opacity(0.08))
-                    .clipShape(Circle())
-                    .foregroundStyle(canUndo && index > 0 ? .white : .white.opacity(0.3))
-            }
-            .disabled(!(canUndo && index > 0))
-            
-            Button { dismiss(to: 1) } label: {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 24, weight: .bold))
-                    .frame(width: 64, height: 64)
-                    .background(iosGreen.opacity(0.15))
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(iosGreen.opacity(0.4)))
-                    .foregroundStyle(iosGreen)
-            }
+            .padding(.bottom, 38)
         }
-        .padding(.bottom, 38)
     }
 
     private func dismiss(to direction: CGFloat) {
@@ -838,10 +816,7 @@ private struct ReviewView: View {
             }
             .frame(maxWidth: 250, maxHeight: 420)
             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(.white.opacity(0.15))
-            )
+            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(.white.opacity(0.15)))
             .shadow(color: .black.opacity(0.6), radius: 30, y: 16)
 
             if !item.matched.isEmpty {
@@ -864,8 +839,6 @@ private struct ReviewView: View {
             .background(color.opacity(0.12).clipShape(RoundedRectangle(cornerRadius: 8)))
     }
 }
-
-// MARK: - Успех
 
 private struct SuccessView: View {
     let count: Int
@@ -898,9 +871,7 @@ private struct SuccessView: View {
             Text(bytes.humanSize)
                 .font(.system(size: 56, weight: .black, design: .rounded))
                 .monospacedDigit()
-                .foregroundStyle(
-                    LinearGradient(colors: [brandAmber, brandPink], startPoint: .leading, endPoint: .trailing)
-                )
+                .foregroundStyle(LinearGradient(colors: [brandAmber, brandPink], startPoint: .leading, endPoint: .trailing))
 
             HStack(spacing: 10) {
                 stat(value: "\(count)", label: "Удалено", tint: iosRed, icon: "trash.fill")
@@ -944,8 +915,6 @@ private struct SuccessView: View {
         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(.white.opacity(0.08)))
     }
 }
-
-// MARK: - Оверлей удаления
 
 private struct DeletingOverlay: View {
     let count: Int
