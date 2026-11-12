@@ -184,7 +184,6 @@ struct RootView: View {
         deleting = true
         Task {
             do {
-                // iOS покажет системное окно подтверждения удаления
                 try await library.delete(itemsToDelete: victims)
                 library.removeItems(withIDs: ids)
                 freedBytes = bytes
@@ -192,7 +191,6 @@ struct RootView: View {
                 deleting = false
                 screen = .success
             } catch {
-                // Пользователь нажал «Не удалять» в системном диалоге
                 deleting = false
             }
         }
@@ -633,7 +631,7 @@ private struct KeepCell: View {
     }
 }
 
-// MARK: - Ручная проверка (свайпы)
+// MARK: - Ручная проверка (свайпы) - ИСПРАВЛЕННЫЙ БЛОК
 
 private struct ReviewView: View {
     let junk: [ScreenshotItem]
@@ -650,33 +648,8 @@ private struct ReviewView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Button(action: onFinish) {
-                    Image(systemName: "chevron.left")
-                        .font(.headline)
-                        .frame(width: 38, height: 38)
-                        .background(.white.opacity(0.08))
-                        .clipShape(Circle())
-                }
-                .foregroundStyle(.white)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Ручная проверка").font(.headline.weight(.black))
-                    Text(current == nil ? "Все карточки просмотрены" : "Карточка \(index + 1) из \(junk.count)")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.45))
-                }
-                Spacer()
-                Text("К удалению: \(selectedIDs.count)")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(iosRed)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(.white.opacity(0.06))
-                    .clipShape(Capsule())
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 12)
-
+            headerView
+            
             Text("влево — удалить · вправо — оставить")
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.4))
@@ -685,105 +658,161 @@ private struct ReviewView: View {
             Spacer()
 
             if let item = current {
-                ZStack {
-                    if index + 1 < junk.count {
-                        card(item: junk[index + 1])
-                            .scaleEffect(0.93)
-                            .opacity(0.5)
-                            .offset(y: 12)
-                    }
-                    card(item: item)
-                        .offset(x: offset)
-                        .rotationEffect(.degrees(Double(offset) / 18))
-                        .overlay {
-                            ZStack {
-                                stamp(text: "УДАЛЮ", color: iosRed)
-                                    .opacity(Double(min(1, -offset / 90)))
-                                    .rotationEffect(.degrees(-12))
-                                    .offset(y: -170)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.leading, 16)
-                                stamp(text: "ОСТАВЛЮ", color: iosGreen)
-                                    .opacity(Double(min(1, offset / 90)))
-                                    .rotationEffect(.degrees(12))
-                                    .offset(y: -170)
-                                    .frame(maxWidth: .infinity, alignment: .trailing)
-                                    .padding(.trailing, 16)
-                            }
-                        }
-                        .gesture(
-                            DragGesture()
-                                .onChanged { offset = $0.translation.width }
-                                .onEnded { value in
-                                    if value.translation.width < -100 {
-                                        dismiss(to: -1)
-                                    } else if value.translation.width > 100 {
-                                        dismiss(to: 1)
-                                    } else {
-                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { offset = 0 }
-                                    }
-                                }
-                        )
-                        .transition(.opacity)
-                }
+                cardStack(for: item)
             } else {
-                VStack(spacing: 14) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 52))
-                        .foregroundStyle(iosGreen)
-                    Text("Проверка завершена")
-                        .font(.title3.weight(.black))
-                    Button("Вернуться к результатам", action: onFinish)
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(LinearGradient(colors: [brandBlue, Color(0x7A4DFF)], startPoint: .leading, endPoint: .trailing))
-                        .clipShape(Capsule())
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 40)
-                }
+                emptyStateView
             }
 
             Spacer()
 
             if current != nil {
-                HStack(spacing: 26) {
-                    Button { dismiss(to: -1) } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 24, weight: .bold))
-                            .frame(width: 64, height: 64)
-                            .background(iosRed.opacity(0.15))
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(iosRed.opacity(0.4)))
-                            .foregroundStyle(iosRed)
-                    }
-                    Button(action: {
-                        guard index > 0, canUndo else { return }
-                        index -= 1
-                        offset = 0
-                        onUndo()
-                    }) {
-                        Image(systemName: "arrow.uturn.backward")
-                            .font(.system(size: 17, weight: .bold))
-                            .frame(width: 48, height: 48)
-                            .background(.white.opacity(0.08))
-                            .clipShape(Circle())
-                            .foregroundStyle(canUndo && index > 0 ? .white : .white.opacity(0.3))
-                    }
-                    .disabled(!(canUndo && index > 0))
-                    Button { dismiss(to: 1) } label: {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 24, weight: .bold))
-                            .frame(width: 64, height: 64)
-                            .background(iosGreen.opacity(0.15))
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(iosGreen.opacity(0.4)))
-                            .foregroundStyle(iosGreen)
-                    }
-                }
-                .padding(.bottom, 38)
+                actionButtons
             }
         }
+    }
+    
+    // MARK: - Subviews для разгрузки компилятора SwiftUI
+    
+    private var headerView: some View {
+        HStack {
+            Button(action: onFinish) {
+                Image(systemName: "chevron.left")
+                    .font(.headline)
+                    .frame(width: 38, height: 38)
+                    .background(.white.opacity(0.08))
+                    .clipShape(Circle())
+            }
+            .foregroundStyle(.white)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Ручная проверка").font(.headline.weight(.black))
+                Text(current == nil ? "Все карточки просмотрены" : "Карточка \(index + 1) из \(junk.count)")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.45))
+            }
+            Spacer()
+            Text("К удалению: \(selectedIDs.count)")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(iosRed)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.white.opacity(0.06))
+                .clipShape(Capsule())
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
+    }
+    
+    private func cardStack(for item: ScreenshotItem) -> some View {
+        ZStack {
+            if index + 1 < junk.count {
+                card(item: junk[index + 1])
+                    .scaleEffect(0.93)
+                    .opacity(0.5)
+                    .offset(y: 12)
+            }
+            
+            swipeableCard(for: item)
+        }
+    }
+    
+    private func swipeableCard(for item: ScreenshotItem) -> some View {
+        card(item: item)
+            .offset(x: offset)
+            .rotationEffect(.degrees(Double(offset) / 18))
+            .overlay(swipeStampsOverlay)
+            .gesture(dragGesture)
+            .transition(.opacity)
+    }
+    
+    private var swipeStampsOverlay: some View {
+        ZStack {
+            stamp(text: "УДАЛЮ", color: iosRed)
+                .opacity(Double(min(1, -offset / 90)))
+                .rotationEffect(.degrees(-12))
+                .offset(y: -170)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 16)
+            
+            stamp(text: "ОСТАВЛЮ", color: iosGreen)
+                .opacity(Double(min(1, offset / 90)))
+                .rotationEffect(.degrees(12))
+                .offset(y: -170)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.trailing, 16)
+        }
+    }
+    
+    private var dragGesture: some Gesture {
+        DragGesture()
+            .onChanged { offset = $0.translation.width }
+            .onEnded { value in
+                if value.translation.width < -100 {
+                    dismiss(to: -1)
+                } else if value.translation.width > 100 {
+                    dismiss(to: 1)
+                } else {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                        offset = 0
+                    }
+                }
+            }
+    }
+    
+    private var emptyStateView: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 52))
+                .foregroundStyle(iosGreen)
+            Text("Проверка завершена")
+                .font(.title3.weight(.black))
+            Button("Вернуться к результатам", action: onFinish)
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .background(LinearGradient(colors: [brandBlue, Color(0x7A4DFF)], startPoint: .leading, endPoint: .trailing))
+                .clipShape(Capsule())
+                .foregroundStyle(.white)
+                .padding(.horizontal, 40)
+        }
+    }
+    
+    private var actionButtons: some View {
+        HStack(spacing: 26) {
+            Button { dismiss(to: -1) } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 24, weight: .bold))
+                    .frame(width: 64, height: 64)
+                    .background(iosRed.opacity(0.15))
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(iosRed.opacity(0.4)))
+                    .foregroundStyle(iosRed)
+            }
+            Button(action: {
+                guard index > 0, canUndo else { return }
+                index -= 1
+                offset = 0
+                onUndo()
+            }) {
+                Image(systemName: "arrow.uturn.backward")
+                    .font(.system(size: 17, weight: .bold))
+                    .frame(width: 48, height: 48)
+                    .background(.white.opacity(0.08))
+                    .clipShape(Circle())
+                    .foregroundStyle(canUndo && index > 0 ? .white : .white.opacity(0.3))
+            }
+            .disabled(!(canUndo && index > 0))
+            
+            Button { dismiss(to: 1) } label: {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 24, weight: .bold))
+                    .frame(width: 64, height: 64)
+                    .background(iosGreen.opacity(0.15))
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(iosGreen.opacity(0.4)))
+                    .foregroundStyle(iosGreen)
+            }
+        }
+        .padding(.bottom, 38)
     }
 
     private func dismiss(to direction: CGFloat) {
