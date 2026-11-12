@@ -34,7 +34,7 @@ extension Int {
     var humanSize: String {
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
-        formatter.allowsNumericUnits = true
+        formatter.allowedUnits = .useAll
         return formatter.string(fromByteCount: Int64(self))
     }
 }
