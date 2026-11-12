@@ -286,6 +286,17 @@ private struct ScanningView: View {
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
 
+    // ИСПРАВЛЕНИЕ: Выносим всю математику в отдельные переменные, чтобы Swift не падал
+    private var percentage: Int {
+        guard total > 0 else { return 0 }
+        return Int((Double(progress) / Double(total)) * 100)
+    }
+
+    private var progressFraction: Double {
+        guard total > 0 else { return 0 }
+        return Double(progress) / Double(total)
+    }
+
     var body: some View {
         VStack(spacing: 14) {
             Text("АНАЛИЗ ГАЛЕРЕИ")
@@ -297,16 +308,23 @@ private struct ScanningView: View {
             Text(total == 0 ? "Скриншотов не найдено" : (progress >= total ? "Анализ завершён" : "Сканирую скриншоты"))
                 .font(.title2.weight(.black))
 
-            Text("\(total == 0 ? 0 : Int(Double(progress) / Double(max(total, 1)) * 100))")
-                .font(.system(size: 58, weight: .black, design: .rounded))
-                .monospacedDigit() + Text(" %").font(.title3.weight(.bold)).foregroundStyle(.white.opacity(0.4))
+            // ИСПРАВЛЕНИЕ: Упрощённая строка без сложных вычислений
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text("\(percentage)")
+                    .font(.system(size: 58, weight: .black, design: .rounded))
+                    .monospacedDigit()
+                Text("%")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.white.opacity(0.4))
+            }
 
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule().fill(.white.opacity(0.08))
                     Capsule()
                         .fill(LinearGradient(colors: [brandBlue, Color(0x7A4DFF), brandPink], startPoint: .leading, endPoint: .trailing))
-                        .frame(width: geo.size.width * (total == 0 ? 0 : Double(progress) / Double(max(total, 1))))
+                        // ИСПРАВЛЕНИЕ: Используем готовую переменную progressFraction
+                        .frame(width: geo.size.width * progressFraction)
                         .animation(.spring(response: 0.4), value: progress)
                 }
             }
@@ -379,6 +397,11 @@ private struct ResultsView: View {
 
     private var selectedBytes: Int {
         junk.filter { selectedIDs.contains($0.id) }.reduce(0) { $0 + $1.fileBytes }
+    }
+
+    // ИСПРАВЛЕНИЕ: Выносим текст кнопки в переменную
+    private var deleteButtonLabel: String {
+        selectedIDs.isEmpty ? "Ничего не выбрано" : "Удалить \(selectedIDs.count) · \(selectedBytes.humanSize)"
     }
 
     var body: some View {
@@ -472,16 +495,14 @@ private struct ResultsView: View {
             .foregroundStyle(.white)
 
             Button(action: onDelete) {
-                Label(
-                    selectedIDs.isEmpty ? "Ничего не выбрано" : "Удалить \(selectedIDs.count) · \(selectedBytes.humanSize)",
-                    systemImage: "trash.fill"
-                )
-                .font(.subheadline.weight(.bold))
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .background(deleteButtonBackground)
-                .clipShape(Capsule())
-                .shadow(color: selectedIDs.isEmpty ? .clear : iosRed.opacity(0.4), radius: 18, y: 8)
+                // ИСПРАВЛЕНИЕ: Используем простую переменную deleteButtonLabel
+                Label(deleteButtonLabel, systemImage: "trash.fill")
+                    .font(.subheadline.weight(.bold))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(deleteButtonBackground)
+                    .clipShape(Capsule())
+                    .shadow(color: selectedIDs.isEmpty ? .clear : iosRed.opacity(0.4), radius: 18, y: 8)
             }
             .foregroundStyle(selectedIDs.isEmpty ? .white.opacity(0.35) : .white)
             .disabled(selectedIDs.isEmpty)
@@ -621,9 +642,11 @@ private struct ReviewView: View {
     @State private var offset: CGFloat = 0
 
     private var current: ScreenshotItem? { index < junk.count ? junk[index] : nil }
-
-    private var swipeRightOpacity: Double { Double(min(1, -offset / 90)) }
-    private var swipeLeftOpacity: Double { Double(min(1, offset / 90)) }
+    
+    // ИСПРАВЛЕНИЕ: Выносим математику анимаций в переменные
+    private var rotationAngle: Double { Double(offset) / 18 }
+    private var leftStampOpacity: Double { Double(min(1, offset / 90)) }
+    private var rightStampOpacity: Double { Double(min(1, -offset / 90)) }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -693,7 +716,7 @@ private struct ReviewView: View {
     private func interactiveCard(item: ScreenshotItem) -> some View {
         card(item: item)
             .offset(x: offset)
-            .rotationEffect(.degrees(Double(offset) / 18))
+            .rotationEffect(.degrees(rotationAngle)) // ИСПРАВЛЕНИЕ: используем переменную
             .overlay(swipeStamps)
             .gesture(dragGesture)
             .transition(.opacity)
@@ -702,14 +725,14 @@ private struct ReviewView: View {
     private var swipeStamps: some View {
         ZStack {
             stamp(text: "УДАЛЮ", color: iosRed)
-                .opacity(swipeRightOpacity)
+                .opacity(rightStampOpacity) // ИСПРАВЛЕНИЕ: используем переменную
                 .rotationEffect(.degrees(-12))
                 .offset(y: -170)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 16)
             
             stamp(text: "ОСТАВЛЮ", color: iosGreen)
-                .opacity(swipeLeftOpacity)
+                .opacity(leftStampOpacity) // ИСПРАВЛЕНИЕ: используем переменную
                 .rotationEffect(.degrees(12))
                 .offset(y: -170)
                 .frame(maxWidth: .infinity, alignment: .trailing)
